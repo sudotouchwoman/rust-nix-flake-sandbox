@@ -20,21 +20,19 @@
       let
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs { inherit system overlays; };
+        toolchain = pkgs.rust-bin.fromRustupToolchainFile ./toolchain.toml;
       in
       {
         devShell = pkgs.mkShell {
           buildInputs = [
             pkgs.openssl
             pkgs.pkg-config
-            pkgs.rust-analyzer
-            pkgs.rustc
-            pkgs.cargo
+            pkgs.rust-analyzer-unwrapped # without bundled toolchain from nixpkgs
+            toolchain
           ];
-        };
 
-        shellHook = ''
-          RUST_SRC_PATH="${nixpkgs.rust.packages.stable.rustPlatform.rustLibSrc}"
-        '';
+          RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
+        };
       }
     );
 }
