@@ -1,3 +1,9 @@
+# rust build dir
 /target
+
+# configuration
 /.direnv
 /.vscode
+
+# nix build output
+/result
