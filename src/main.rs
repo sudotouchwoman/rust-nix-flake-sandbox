@@ -1,3 +1,5 @@
+use core::fmt;
+
 fn main() {
     let foo = "suck on this";
     println!("Hello, world! {}", foo);
@@ -17,12 +19,29 @@ fn main() {
         println!("Looks like your age is greater than 20!");
     }
 
+    println!("That's how you print a struct: {}", me);
+    println!("That's how you debug-print a struct: {:?}", me);
+
     inspect_strings();
 }
 
+// this syntax will derive (implement automatically) debug trait for Person.
+#[derive(Debug)]
 struct Person {
     name: String,
     age: u16,
+}
+
+// In order to use non-debug printing (fmt::Display), one has
+// to manually implement this fmt::Display trait.
+// This looks much like C++ concepts with better compiler support to me.
+// I should inspect how traits are implemented in Rust at runtime.
+impl fmt::Display for Person {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // you can remove semicolon on the last line to
+        // return a value implicitly
+        write!(f, "Ayoo! This is {}, {} y.o.", self.name, self.age)
+    }
 }
 
 fn inspect_strings() {
