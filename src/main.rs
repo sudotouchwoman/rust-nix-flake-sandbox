@@ -1,69 +1,41 @@
-use core::fmt;
+use std::{env, process};
+
+use sandbox::samples;
+
+const EXIT_FAILURE: i32 = 1;
 
 fn main() {
     let foo = "suck on this";
-    println!("Hello, world! {}", foo);
 
-    let me = Person {
-        name: "sudotouchwoman".to_string(),
-        age: 23,
-    };
+    println!("{}", sandbox::public_hello(foo));
 
-    println!(
-        "Hello, {name}! your age is: {age}",
-        name = me.name,
-        age = me.age
-    );
+    let args: Vec<String> = env::args().collect();
 
-    if me.age > 20 {
-        println!("Looks like your age is greater than 20!");
+    // expect single argument
+    if args.len() != 2 {
+        eprintln!("Please provide a file name");
+        process::exit(EXIT_FAILURE);
     }
 
-    println!("That's how you print a struct: {}", me);
-    println!("That's how you debug-print a struct: {:?}", me);
+    // get a reference to the second argument (filename)
+    let filename = &args[1];
 
-    inspect_strings();
-}
+    const CHUNK_SIZE: u16 = 0x100;
 
-// this syntax will derive (implement automatically) debug trait for Person.
-#[derive(Debug)]
-struct Person {
-    name: String,
-    age: u16,
-}
+    let reader = samples::reader::ChunkFileReader::new(&filename, CHUNK_SIZE).unwrap_or_else(|e| {
+        eprintln!("Failed to open file: {}: {}", filename, e);
+        process::exit(EXIT_FAILURE);
+    });
 
-// In order to use non-debug printing (fmt::Display), one has
-// to manually implement this fmt::Display trait.
-// This looks much like C++ concepts with better compiler support to me.
-// I should inspect how traits are implemented in Rust at runtime.
-impl fmt::Display for Person {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // you can remove semicolon on the last line to
-        // return a value implicitly
-        write!(f, "Ayoo! This is {}, {} y.o.", self.name, self.age)
-    }
-}
+    reader
+        .read(&|chunk| {
+            println!("[{len}]: '{chunk}'", len = chunk.len(), chunk = chunk);
+            true
+        })
+        .unwrap_or_else(|e| {
+            eprintln!("Failed to read line: {}: {}", filename, e);
+            process::exit(1);
+        });
 
-fn inspect_strings() {
-    use std::mem;
-
-    let story = String::from("Once upon a time...");
-
-    // Prevent automatically dropping the String's data
-    let mut story = mem::ManuallyDrop::new(story);
-
-    let ptr = story.as_mut_ptr();
-    let len = story.len();
-    let capacity = story.capacity();
-
-    // assert a false thing for a reason
-    assert_ne!(ptr, std::ptr::null_mut::<u8>());
-    assert_eq!(len, 19);
-    assert_eq!(capacity, len);
-
-    // drop the String's data (can only be done in an unsafe block)
-    // so that all memory is deallocated
-    unsafe {
-        mem::ManuallyDrop::drop(&mut story);
-    }
+    println!("Done, have a nice night!");
 }
