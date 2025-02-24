@@ -28,3 +28,10 @@ xdg-open result/share/doc/rust/html/index.html
 # or with browser-specific commands
 google-chrome --incognito result/share/doc/rust/html/index.html
 ```
+
+It feels very unnatural for some reason, but you can actually run `rust`-built binaries
+under `valgrind`, e.g. like this with `nix`:
+
+```shell
+nix run nixpkgs#valgrind ./target/debug/main
+```
