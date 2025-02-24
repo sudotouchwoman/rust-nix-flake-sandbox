@@ -1,5 +1,4 @@
 use std::{
-    error::Error,
     fs::File,
     io::{BufReader, Read},
     str,
@@ -9,6 +8,25 @@ use std::{
 pub struct ChunkFileReader {
     f: File,
     chunk_size: u16,
+}
+
+// TODO (sudotouchwoman): implement error enum with thiserror
+#[derive(Debug)]
+pub enum ReaderError {
+    IoError(std::io::Error),
+    DecodeError(std::str::Utf8Error),
+}
+
+impl From<std::io::Error> for ReaderError {
+    fn from(err: std::io::Error) -> ReaderError {
+        ReaderError::IoError(err)
+    }
+}
+
+impl From<std::str::Utf8Error> for ReaderError {
+    fn from(err: std::str::Utf8Error) -> ReaderError {
+        ReaderError::DecodeError(err)
+    }
 }
 
 impl ChunkFileReader {
@@ -23,7 +41,7 @@ impl ChunkFileReader {
     }
 
     // read applies provided visitor to each chunk read from the file.
-    pub fn read<T: Fn(&str) -> bool>(&self, visitor: &T) -> Result<(), Box<dyn Error>> {
+    pub fn read<T: Fn(&str) -> bool>(&self, visitor: &T) -> Result<(), ReaderError> {
         let mut reader = BufReader::new(&self.f);
         let mut buffer = vec![0u8; usize::from(self.chunk_size)];
 

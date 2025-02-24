@@ -33,7 +33,7 @@ fn main() {
             true
         })
         .unwrap_or_else(|e| {
-            eprintln!("Failed to read line: {}: {}", filename, e);
+            eprintln!("Failed to read line: {}: {:?}", filename, e);
             process::exit(1);
         });
 
