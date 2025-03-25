@@ -1,4 +1,5 @@
 pub mod reader;
+pub mod primes;
 
 use std::fmt;
 
